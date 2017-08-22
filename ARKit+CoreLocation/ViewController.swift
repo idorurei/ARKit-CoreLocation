@@ -88,6 +88,33 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 repeats: true)
         }
         
+        if let currentLocation = sceneLocationView.currentLocation() {
+            let directionRequest = MKDirectionsRequest()
+            directionRequest.source = MKMapItem(placemark: MKPlacemark(coordinate: currentLocation.coordinate, addressDictionary: nil))
+            directionRequest.destination = MKMapItem(placemark: MKPlacemark(coordinate: pinCoordinate, addressDictionary: nil))
+            directionRequest.requestsAlternateRoutes = true
+            directionRequest.transportType = .automobile
+        
+            let directions = MKDirections(request: directionRequest)
+            
+            directions.calculate {
+                (response, error) -> Void in
+                
+                guard let response = response else {
+                    if let error = error {
+                        print("Error: \(error)")
+                    }
+                    return
+                }
+                let route = response.routes[0]
+                self.mapView.add((route.polyline), level: MKOverlayLevel.aboveRoads)
+                
+                let rect = route.polyline.boundingMapRect
+                self.mapView.setRegion(MKCoordinateRegionForMapRect(rect), animated: true)
+            
+            }
+        }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
